@@ -1,0 +1,18 @@
+#
+# Copyright (c) 2023 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+namespace: harbor
+resources:
+  - helmrelease.yaml
+secretGenerator:
+  - name: harbor-static-overrides
+    files:
+      - harbor-static-overrides.yaml
+  - name: harbor-system-overrides
+    files:
+      - harbor-system-overrides.yaml
+generatorOptions:
+  disableNameSuffixHash: true
