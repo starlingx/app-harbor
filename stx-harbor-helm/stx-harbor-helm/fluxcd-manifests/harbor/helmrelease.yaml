@@ -1,0 +1,36 @@
+#
+# Copyright (c) 2022 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+apiVersion: "helm.toolkit.fluxcd.io/v2beta1"
+kind: HelmRelease
+metadata:
+  name: harbor
+  labels:
+    chart_group: harbor-charts
+spec:
+  releaseName: harbor
+  chart:
+    spec:
+      chart: harbor
+      version: 1.12.0
+      sourceRef:
+        kind: HelmRepository
+        name: stx-platform
+  interval: 1m
+  timeout: 30m
+  test:
+    enable: false
+  install:
+    disableHooks: false
+  upgrade:
+    disableHooks: false
+  valuesFrom:
+    - kind: Secret
+      name: harbor-static-overrides
+      valuesKey: harbor-static-overrides.yaml
+    - kind: Secret
+      name: harbor-system-overrides
+      valuesKey: harbor-system-overrides.yaml
