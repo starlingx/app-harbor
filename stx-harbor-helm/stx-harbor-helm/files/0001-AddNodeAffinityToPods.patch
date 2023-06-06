@@ -1,0 +1,225 @@
+From 59f2c73377fefb54c9ef4c60ba87c9f176d7b280 Mon Sep 17 00:00:00 2001
+From: Harshad Sonde <harshad.sonde@windriver.com>
+Date: Tue, 13 Jun 2023 07:11:08 -0400
+Subject: [PATCH 1/1] AddNodeAffinityToPods
+
+Signed-off-by: Harshad Sonde <harshad.sonde@windriver.com>
+---
+ values.yaml | 131 ++++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 111 insertions(+), 20 deletions(-)
+
+diff --git a/values.yaml b/values.yaml
+index 9400e1d..aef6abf 100644
+--- a/values.yaml
++++ b/values.yaml
+@@ -343,6 +343,7 @@ imagePullPolicy: IfNotPresent
+
+ # Use this set to assign a list of default pullSecrets
+ imagePullSecrets:
++   - name: default-registry-key
+ #  - name: docker-registry-secret
+ #  - name: internal-registry-secret
+
+@@ -412,8 +413,17 @@ nginx:
+   #    memory: 256Mi
+   #    cpu: 100m
+   nodeSelector: {}
+-  tolerations: []
+-  affinity: {}
++  tolerations:
++  - key: node-role.kubernetes.io/master
++  operator: Exists
++  effect: NoSchedule
++  affinity:
++    nodeAffinity:
++      requiredDuringSchedulingIgnoredDuringExecution:
++        nodeSelectorTerms:
++        - matchExpressions:
++          - key: node-role.kubernetes.io/control-plane
++            operator: Exists
+   ## Additional deployment annotations
+   podAnnotations: {}
+   ## The priority class to run the pod as
+@@ -434,8 +444,17 @@ portal:
+   #    memory: 256Mi
+   #    cpu: 100m
+   nodeSelector: {}
+-  tolerations: []
+-  affinity: {}
++  tolerations:
++  - key: node-role.kubernetes.io/master
++  operator: Exists
++  effect: NoSchedule
++  affinity:
++    nodeAffinity:
++      requiredDuringSchedulingIgnoredDuringExecution:
++        nodeSelectorTerms:
++        - matchExpressions:
++          - key: node-role.kubernetes.io/control-plane
++            operator: Exists
+   ## Additional deployment annotations
+   podAnnotations: {}
+   ## The priority class to run the pod as
+@@ -460,8 +479,17 @@ core:
+   #    memory: 256Mi
+   #    cpu: 100m
+   nodeSelector: {}
+-  tolerations: []
+-  affinity: {}
++  tolerations:
++  - key: node-role.kubernetes.io/master
++  operator: Exists
++  effect: NoSchedule
++  affinity:
++    nodeAffinity:
++      requiredDuringSchedulingIgnoredDuringExecution:
++        nodeSelectorTerms:
++        - matchExpressions:
++          - key: node-role.kubernetes.io/control-plane
++            operator: Exists
+   ## Additional deployment annotations
+   podAnnotations: {}
+   ## Additional service annotations
+@@ -526,8 +554,17 @@ jobservice:
+   #     memory: 256Mi
+   #     cpu: 100m
+   nodeSelector: {}
+-  tolerations: []
+-  affinity: {}
++  tolerations:
++  - key: node-role.kubernetes.io/master
++  operator: Exists
++  effect: NoSchedule
++  affinity:
++    nodeAffinity:
++      requiredDuringSchedulingIgnoredDuringExecution:
++        nodeSelectorTerms:
++        - matchExpressions:
++          - key: node-role.kubernetes.io/control-plane
++            operator: Exists
+   ## Additional deployment annotations
+   podAnnotations: {}
+   # Secret is used when job service communicates with other components.
+@@ -562,8 +599,17 @@ registry:
+   replicas: 1
+   revisionHistoryLimit: 10
+   nodeSelector: {}
+-  tolerations: []
+-  affinity: {}
++  tolerations:
++  - key: node-role.kubernetes.io/master
++  operator: Exists
++  effect: NoSchedule
++  affinity:
++    nodeAffinity:
++      requiredDuringSchedulingIgnoredDuringExecution:
++        nodeSelectorTerms:
++        - matchExpressions:
++          - key: node-role.kubernetes.io/control-plane
++            operator: Exists
+   ## Additional deployment annotations
+   podAnnotations: {}
+   ## The priority class to run the pod as
+@@ -669,8 +715,17 @@ trivy:
+       cpu: 1
+       memory: 1Gi
+   nodeSelector: {}
+-  tolerations: []
+-  affinity: {}
++  tolerations:
++  - key: node-role.kubernetes.io/master
++  operator: Exists
++  effect: NoSchedule
++  affinity:
++    nodeAffinity:
++      requiredDuringSchedulingIgnoredDuringExecution:
++        nodeSelectorTerms:
++        - matchExpressions:
++          - key: node-role.kubernetes.io/control-plane
++            operator: Exists
+   ## Additional deployment annotations
+   podAnnotations: {}
+   ## The priority class to run the pod as
+@@ -692,8 +747,17 @@ notary:
+     #    memory: 256Mi
+     #    cpu: 100m
+     nodeSelector: {}
+-    tolerations: []
+-    affinity: {}
++    tolerations:
++    - key: node-role.kubernetes.io/master
++    operator: Exists
++    effect: NoSchedule
++    affinity:
++      nodeAffinity:
++        requiredDuringSchedulingIgnoredDuringExecution:
++          nodeSelectorTerms:
++          - matchExpressions:
++            - key: node-role.kubernetes.io/control-plane
++              operator: Exists
+     ## Additional deployment annotations
+     podAnnotations: {}
+     ## The priority class to run the pod as
+@@ -714,8 +778,17 @@ notary:
+     #    memory: 256Mi
+     #    cpu: 100m
+     nodeSelector: {}
+-    tolerations: []
+-    affinity: {}
++    tolerations:
++    - key: node-role.kubernetes.io/master
++    operator: Exists
++    effect: NoSchedule
++    affinity:
++      nodeAffinity:
++        requiredDuringSchedulingIgnoredDuringExecution:
++          nodeSelectorTerms:
++          - matchExpressions:
++            - key: node-role.kubernetes.io/control-plane
++              operator: Exists
+     ## Additional deployment annotations
+     podAnnotations: {}
+     ## The priority class to run the pod as
+@@ -757,8 +830,17 @@ database:
+     readinessProbe:
+       timeoutSeconds: 1
+     nodeSelector: {}
+-    tolerations: []
+-    affinity: {}
++    tolerations:
++    - key: node-role.kubernetes.io/master
++    operator: Exists
++    effect: NoSchedule
++    affinity:
++      nodeAffinity:
++        requiredDuringSchedulingIgnoredDuringExecution:
++          nodeSelectorTerms:
++          - matchExpressions:
++            - key: node-role.kubernetes.io/control-plane
++              operator: Exists
+     ## The priority class to run the pod as
+     priorityClassName:
+     initContainer:
+@@ -817,8 +899,17 @@ redis:
+     #    memory: 256Mi
+     #    cpu: 100m
+     nodeSelector: {}
+-    tolerations: []
+-    affinity: {}
++    tolerations:
++    - key: node-role.kubernetes.io/master
++    operator: Exists
++    effect: NoSchedule
++    affinity:
++      nodeAffinity:
++        requiredDuringSchedulingIgnoredDuringExecution:
++          nodeSelectorTerms:
++          - matchExpressions:
++            - key: node-role.kubernetes.io/control-plane
++              operator: Exists
+     ## The priority class to run the pod as
+     priorityClassName:
+   external:
+--
+2.25.1
+

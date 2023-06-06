@@ -30,6 +30,9 @@ override_dh_auto_build:
 	mkdir -p fluxcd
 	tar -C fluxcd -xf $(HARBOR_PKG)
 
+	# Apply Patches
+	cd fluxcd/helm-charts/ && patch --no-backup-if-mismatch --fuzz=0 -p1 < ../../files/0001-AddNodeAffinityToPods.patch
+
 	# create a tgz file
 	cd fluxcd && mkdir -p output/ && mv helm-charts harbor &&tar -czvf output/$(HARBOR_PKG_TGZ) harbor/
 
@@ -53,7 +56,7 @@ override_dh_auto_build:
 
 	# Copy the plugins: installed in the buildroot
 	mkdir -p $(STAGING)/plugins
-	# cp /plugins/*.whl $(STAGING)/plugins
+	cp /plugins/*.whl $(STAGING)/plugins
 
 	# Generate checksum file and package the tarball
 	cd $(STAGING) && find . -type f ! -name '*.md5' -print0 | xargs -0 md5sum > checksum.md5
