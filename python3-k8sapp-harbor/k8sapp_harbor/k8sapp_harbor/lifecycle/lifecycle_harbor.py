@@ -102,7 +102,7 @@ class HarborAppLifecycleOperator(base.AppLifecycleOperator):
             namespace.metadata.labels.update({component_constant: 'platform'})
             app_op._kube.kube_patch_namespace(app_constants.HELM_NS_HARBOR, namespace)
         elif not override_label:
-            namespace.metadata.labels.update({component_constant: 'platform'})
+            namespace.metadata.labels.update({component_constant: 'application'})
             app_op._kube.kube_patch_namespace(app_constants.HELM_NS_HARBOR, namespace)
         else:
             LOG.info(f'WARNING: Namespace label {override_label} not supported')
