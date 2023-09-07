@@ -5,7 +5,6 @@
 #
 
 from k8sapp_harbor.common import constants as app_constants
-from sysinv.tests.helm.test_helm import HelmOperatorTestSuiteMixin
 
 from sysinv.tests.db import base as dbbase
 
@@ -26,7 +25,6 @@ class K8SAppHarborAppMixin(object):
 class K8SAppHarborControllerTestCase(K8SAppHarborAppMixin,
                                          dbbase.BaseIPv6Mixin,
                                          dbbase.BaseCephStorageBackendMixin,
-                                         HelmOperatorTestSuiteMixin,
                                          dbbase.ControllerHostTestCase):
     pass
 
@@ -38,7 +36,6 @@ class K8SAppHarborControllerTestCase(K8SAppHarborAppMixin,
 # - harbor app
 class K8SAppHarborAIOTestCase(K8SAppHarborAppMixin,
                                   dbbase.BaseCephStorageBackendMixin,
-                                  HelmOperatorTestSuiteMixin,
                                   dbbase.AIOSimplexHostTestCase):
     pass
 
