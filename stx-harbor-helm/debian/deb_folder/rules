@@ -50,9 +50,9 @@ override_dh_auto_build:
 
 	# Populate metadata.
 	cp files/metadata.yaml $(STAGING)
-	sed -i 's/@APP_NAME@/$(APP_NAME)/g' $(STAGING)/metadata.yaml
-	sed -i 's/@APP_VERSION@/$(APP_VERSION)/g' $(STAGING)/metadata.yaml
-	sed -i 's/@HELM_REPO@/$(HELM_REPO)/g' $(STAGING)/metadata.yaml
+	sed -i 's/APP_REPLACE_NAME/$(APP_NAME)/g' $(STAGING)/metadata.yaml
+	sed -i 's/APP_REPLACE_VERSION/$(APP_VERSION)/g' $(STAGING)/metadata.yaml
+	sed -i 's/HELM_REPLACE_REPO/$(HELM_REPO)/g' $(STAGING)/metadata.yaml
 
 	# Copy the plugins: installed in the buildroot
 	mkdir -p $(STAGING)/plugins

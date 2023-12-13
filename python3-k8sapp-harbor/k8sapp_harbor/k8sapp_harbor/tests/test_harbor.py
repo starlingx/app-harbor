@@ -11,10 +11,9 @@ from sysinv.tests.helm import base
 
 
 class HarborTestCase(test_plugins.K8SAppHarborAppMixin,
-                         base.HelmTestCaseMixin):
+                     base.HelmTestCaseMixin):
 
     def setUp(self):
         super(HarborTestCase, self).setUp()
         self.app = dbutils.create_test_app(name='harbor')
         self.dbapi = dbapi.get_instance()
-

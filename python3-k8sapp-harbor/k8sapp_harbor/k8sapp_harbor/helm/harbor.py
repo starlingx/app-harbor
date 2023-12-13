@@ -3,15 +3,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-
+from sysinv.common import constants
 from sysinv.common import exception
 from sysinv.helm import base
-from sysinv.common import constants
 
 from k8sapp_harbor.common import constants as app_constants
 from oslo_log import log as logging
 
 LOG = logging.getLogger(__name__)
+
 
 class HarborHelm(base.BaseHelm):
     """Class to encapsulate helm operations for the harbor chart"""
@@ -32,8 +32,8 @@ class HarborHelm(base.BaseHelm):
         return self.SUPPORTED_NAMESPACES
 
     def get_master_worker_host_count(self):
-        controller=len(self.dbapi.ihost_get_by_personality(constants.CONTROLLER))
-        worker=len(self.dbapi.ihost_get_by_personality(constants.WORKER))
+        controller = len(self.dbapi.ihost_get_by_personality(constants.CONTROLLER))
+        worker = len(self.dbapi.ihost_get_by_personality(constants.WORKER))
         return controller+worker
 
     def get_overrides(self, namespace=None):
@@ -67,31 +67,31 @@ class HarborHelm(base.BaseHelm):
             }
         else:
             overrides = {
-                    app_constants.HELM_NS_HARBOR: {
+                app_constants.HELM_NS_HARBOR: {
                     'core': {
-                            'replicas': 1,
+                        'replicas': 1,
                     },
                     'portal': {
-                            'replicas': 1,
+                        'replicas': 1,
                     },
                     'notary': {
                         'server': {
                             'replicas': 1,
                             },
-                        'signer':{
+                        'signer': {
                             'replicas': 1,
                             },
                     },
                     'jobservice': {
-                            'replicas': 1,
+                        'replicas': 1,
                     },
                     'registry': {
-                            'replicas': 1,
+                        'replicas': 1,
                     },
                     'trivy': {
-                            'replicas': 1,
+                        'replicas': 1,
                     },
-                 }
+                }
             }
 
         if namespace in self.SUPPORTED_NAMESPACES:
@@ -101,4 +101,3 @@ class HarborHelm(base.BaseHelm):
                                                  namespace=namespace)
         else:
             return overrides
-

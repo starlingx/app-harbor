@@ -23,9 +23,9 @@ class K8SAppHarborAppMixin(object):
 # - Ceph Storage
 # - harbor app
 class K8SAppHarborControllerTestCase(K8SAppHarborAppMixin,
-                                         dbbase.BaseIPv6Mixin,
-                                         dbbase.BaseCephStorageBackendMixin,
-                                         dbbase.ControllerHostTestCase):
+                                     dbbase.BaseIPv6Mixin,
+                                     dbbase.BaseCephStorageBackendMixin,
+                                     dbbase.ControllerHostTestCase):
     pass
 
 
@@ -35,7 +35,6 @@ class K8SAppHarborControllerTestCase(K8SAppHarborAppMixin,
 # - Ceph Storage
 # - harbor app
 class K8SAppHarborAIOTestCase(K8SAppHarborAppMixin,
-                                  dbbase.BaseCephStorageBackendMixin,
-                                  dbbase.AIOSimplexHostTestCase):
+                              dbbase.BaseCephStorageBackendMixin,
+                              dbbase.AIOSimplexHostTestCase):
     pass
-

@@ -9,6 +9,7 @@
 """ System inventory App lifecycle operator."""
 
 import os
+import yaml
 
 from k8sapp_harbor.common import constants as app_constants
 from oslo_log import log as logging
@@ -17,9 +18,7 @@ from sysinv.common import exception
 from sysinv.common import kubernetes
 from sysinv.common import utils as cutils
 from sysinv.helm import lifecycle_base as base
-from sysinv.helm.lifecycle_hook import LifecycleHookInfo
 from sysinv.helm.lifecycle_constants import LifecycleConstants
-import yaml
 
 LOG = logging.getLogger(__name__)
 
@@ -165,4 +164,3 @@ class HarborAppLifecycleOperator(base.AppLifecycleOperator):
                 namespace=app_constants.HELM_NS_HARBOR,
                 grace_periods_seconds=0
             )
-
