@@ -34,7 +34,7 @@ class HarborHelm(base.BaseHelm):
     def get_master_worker_host_count(self):
         controller = len(self.dbapi.ihost_get_by_personality(constants.CONTROLLER))
         worker = len(self.dbapi.ihost_get_by_personality(constants.WORKER))
-        return controller+worker
+        return controller + worker
 
     def get_overrides(self, namespace=None):
         if self.get_master_worker_host_count() >= 2:
@@ -49,19 +49,19 @@ class HarborHelm(base.BaseHelm):
                     'notary': {
                         'server': {
                             'replicas': 2,
-                            },
+                        },
                         'signer': {
                             'replicas': 2,
-                            },
+                        },
                     },
                     'jobservice': {
-                            'replicas': 2,
+                        'replicas': 2,
                     },
                     'registry': {
-                            'replicas': 2,
+                        'replicas': 2,
                     },
                     'trivy': {
-                            'replicas': 2,
+                        'replicas': 2,
                     },
                 }
             }
@@ -77,10 +77,10 @@ class HarborHelm(base.BaseHelm):
                     'notary': {
                         'server': {
                             'replicas': 1,
-                            },
+                        },
                         'signer': {
                             'replicas': 1,
-                            },
+                        },
                     },
                     'jobservice': {
                         'replicas': 1,
