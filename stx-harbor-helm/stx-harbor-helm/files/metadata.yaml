@@ -1,7 +1,12 @@
 app_name: APP_REPLACE_NAME
 app_version: APP_REPLACE_VERSION
 helm_repo: HELM_REPLACE_REPO
+
 maintain_user_overrides: true
 maintain_attributes: true
+
 upgrades:
   auto_update: true
+
+supported_k8s_version:
+  minimum: 1.24.4
