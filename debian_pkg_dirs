@@ -1,2 +1,3 @@
+helm-charts/upstream/harbor-helm
 python3-k8sapp-harbor
 stx-harbor-helm

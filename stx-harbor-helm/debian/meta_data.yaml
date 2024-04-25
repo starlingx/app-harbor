@@ -1,12 +1,7 @@
 ---
 debname: stx-harbor-helm
-debver: 1.0-1
+debver: 1.0-2
 src_path: stx-harbor-helm
-dl_files:
-  helm-charts-harbor-v1.12.0.tar.gz:
-    topdir: helm-charts
-    url: https://github.com/goharbor/harbor-helm/archive/refs/tags/v1.12.0.tar.gz
-    md5sum: f650eba90361abe4972fa94489a54cb1
 revision:
   dist: $STX_DIST
   GITREVCOUNT:
