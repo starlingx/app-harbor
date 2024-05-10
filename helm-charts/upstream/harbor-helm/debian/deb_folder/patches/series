@@ -1,1 +1,2 @@
 0001-AddNodeAffinityToPods.patch
+0002-adding-control-plane-toleration-to-the-pods.patch

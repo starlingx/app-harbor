@@ -1,0 +1,156 @@
+From 2970bb86d37ebf938faa7e365bb8f2e8b8bafe5c Mon Sep 17 00:00:00 2001
+From: Jagatguru Prasad Mishra <jagatguruprasad.mishra@windriver.com>
+Date: Wed, 8 May 2024 08:42:33 -0400
+Subject: [PATCH 1/1] adding control-plane toleration to the pods
+
+---
+ values.yaml | 70 ++++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 50 insertions(+), 20 deletions(-)
+
+diff --git a/values.yaml b/values.yaml
+index aef6abf..8e89cee 100644
+--- a/values.yaml
++++ b/values.yaml
+@@ -415,8 +415,11 @@ nginx:
+   nodeSelector: {}
+   tolerations:
+   - key: node-role.kubernetes.io/master
+-  operator: Exists
+-  effect: NoSchedule
++    operator: Exists
++    effect: NoSchedule
++  - key: node-role.kubernetes.io/control-plane
++    operator: Exists
++    effect: NoSchedule
+   affinity:
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+@@ -446,8 +449,11 @@ portal:
+   nodeSelector: {}
+   tolerations:
+   - key: node-role.kubernetes.io/master
+-  operator: Exists
+-  effect: NoSchedule
++    operator: Exists
++    effect: NoSchedule
++  - key: node-role.kubernetes.io/control-plane
++    operator: Exists
++    effect: NoSchedule
+   affinity:
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+@@ -481,8 +487,11 @@ core:
+   nodeSelector: {}
+   tolerations:
+   - key: node-role.kubernetes.io/master
+-  operator: Exists
+-  effect: NoSchedule
++    operator: Exists
++    effect: NoSchedule
++  - key: node-role.kubernetes.io/control-plane
++    operator: Exists
++    effect: NoSchedule
+   affinity:
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+@@ -556,8 +565,11 @@ jobservice:
+   nodeSelector: {}
+   tolerations:
+   - key: node-role.kubernetes.io/master
+-  operator: Exists
+-  effect: NoSchedule
++    operator: Exists
++    effect: NoSchedule
++  - key: node-role.kubernetes.io/control-plane
++    operator: Exists
++    effect: NoSchedule
+   affinity:
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+@@ -601,8 +613,11 @@ registry:
+   nodeSelector: {}
+   tolerations:
+   - key: node-role.kubernetes.io/master
+-  operator: Exists
+-  effect: NoSchedule
++    operator: Exists
++    effect: NoSchedule
++  - key: node-role.kubernetes.io/control-plane
++    operator: Exists
++    effect: NoSchedule
+   affinity:
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+@@ -717,8 +732,11 @@ trivy:
+   nodeSelector: {}
+   tolerations:
+   - key: node-role.kubernetes.io/master
+-  operator: Exists
+-  effect: NoSchedule
++    operator: Exists
++    effect: NoSchedule
++  - key: node-role.kubernetes.io/control-plane
++    operator: Exists
++    effect: NoSchedule
+   affinity:
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+@@ -749,8 +767,11 @@ notary:
+     nodeSelector: {}
+     tolerations:
+     - key: node-role.kubernetes.io/master
+-    operator: Exists
+-    effect: NoSchedule
++      operator: Exists
++      effect: NoSchedule
++    - key: node-role.kubernetes.io/control-plane
++      operator: Exists
++      effect: NoSchedule
+     affinity:
+       nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+@@ -780,8 +801,11 @@ notary:
+     nodeSelector: {}
+     tolerations:
+     - key: node-role.kubernetes.io/master
+-    operator: Exists
+-    effect: NoSchedule
++      operator: Exists
++      effect: NoSchedule
++    - key: node-role.kubernetes.io/control-plane
++      operator: Exists
++      effect: NoSchedule
+     affinity:
+       nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+@@ -832,8 +856,11 @@ database:
+     nodeSelector: {}
+     tolerations:
+     - key: node-role.kubernetes.io/master
+-    operator: Exists
+-    effect: NoSchedule
++      operator: Exists
++      effect: NoSchedule
++    - key: node-role.kubernetes.io/control-plane
++      operator: Exists
++      effect: NoSchedule
+     affinity:
+       nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+@@ -901,8 +928,11 @@ redis:
+     nodeSelector: {}
+     tolerations:
+     - key: node-role.kubernetes.io/master
+-    operator: Exists
+-    effect: NoSchedule
++      operator: Exists
++      effect: NoSchedule
++    - key: node-role.kubernetes.io/control-plane
++      operator: Exists
++      effect: NoSchedule
+     affinity:
+       nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+-- 
+2.25.1
+
