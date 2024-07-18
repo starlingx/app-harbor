@@ -1,3 +1,9 @@
+harbor-helm (1.12-3) unstable; urgency=medium
+
+  * Internal change to disable huge pages in harbor db
+
+ --  Jagatguru Prasad Mishra <jagatguruprasad.mishra@windriver.com>   Wed, 17 Jul 2024 10:10:43 -0400
+
 harbor-helm (1.12-2) unstable; urgency=medium
 
   * Initial release.
