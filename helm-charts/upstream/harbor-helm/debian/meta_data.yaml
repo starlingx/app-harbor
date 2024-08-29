@@ -1,6 +1,6 @@
 ---
 debname: harbor-helm
-debver: 1.12-3
+debver: 1.12-4
 dl_path:
   name: harbor-1.12.0.tar.gz
   url: https://github.com/goharbor/harbor-helm/archive/refs/tags/v1.12.0.tar.gz
@@ -9,7 +9,7 @@ src_files:
   - harbor-helm/files/Makefile
 revision:
   dist: $STX_DIST
-  stx_patch: 2
+  stx_patch: 3
   GITREVCOUNT:
     SRC_DIR: ${MY_REPO}/stx/app-harbor/helm-charts/upstream/harbor-helm
     BASE_SRCREV: e097b7cfda6e1258151c9143f274bebec31335c9

@@ -1,3 +1,4 @@
 0001-AddNodeAffinityToPods.patch
 0002-adding-control-plane-toleration-to-the-pods.patch
 0003-disable-huge-pages.patch
+0004-liveness-and-readiness-probe-update.patch

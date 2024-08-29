@@ -1,0 +1,628 @@
+From 4932177667cbbd345b2460351adbd304b567e405 Mon Sep 17 00:00:00 2001
+From: Jagatguru Prasad Mishra <jagatguruprasad.mishra@windriver.com>
+Date: Tue, 3 Sep 2024 03:43:44 -0400
+Subject: [PATCH 1/1] liveness and readiness probe update
+In this patch, following updates are made to the startup, readiness, and
+liveness probes to reduce platform CPU usage:
+timeoutSeconds is changed to 5.
+failureThreshold is changed to 3.
+
+---
+ templates/core/core-dpl.yaml             |  18 ++-
+ templates/database/database-ss.yaml      |  12 +-
+ templates/exporter/exporter-dpl.yaml     |  14 ++-
+ templates/jobservice/jobservice-dpl.yaml |  14 ++-
+ templates/nginx/deployment.yaml          |  14 ++-
+ templates/notary/notary-server.yaml      |  14 ++-
+ templates/notary/notary-signer.yaml      |  14 ++-
+ templates/portal/deployment.yaml         |  14 ++-
+ templates/redis/statefulset.yaml         |  14 ++-
+ templates/registry/registry-dpl.yaml     |  28 +++--
+ templates/trivy/trivy-sts.yaml           |  18 +--
+ values.yaml                              | 143 ++++++++++++++++++++++-
+ 12 files changed, 262 insertions(+), 55 deletions(-)
+
+diff --git a/templates/core/core-dpl.yaml b/templates/core/core-dpl.yaml
+index 2ca8b0c..b859874 100644
+--- a/templates/core/core-dpl.yaml
++++ b/templates/core/core-dpl.yaml
+@@ -52,24 +52,30 @@ spec:
+             path: /api/v2.0/ping
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.core.containerPort" . }}
+-          failureThreshold: 360
++          failureThreshold: {{ .Values.core.startupProbe.failureThreshold }}
+           initialDelaySeconds: {{ .Values.core.startupProbe.initialDelaySeconds }}
+-          periodSeconds: 10
++          periodSeconds: {{ .Values.core.startupProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.core.startupProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.core.startupProbe.successThreshold }}
+         {{- end }}
+         livenessProbe:
+           httpGet:
+             path: /api/v2.0/ping
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.core.containerPort" . }}
+-          failureThreshold: 2
+-          periodSeconds: 10
++          failureThreshold: {{ .Values.core.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.core.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.core.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.core.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /api/v2.0/ping
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.core.containerPort" . }}
+-          failureThreshold: 2
+-          periodSeconds: 10
++          failureThreshold: {{ .Values.core.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.core.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.core.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.core.readinessProbe.successThreshold }}
+         envFrom:
+         - configMapRef:
+             name: "{{ template "harbor.core" . }}"
+diff --git a/templates/database/database-ss.yaml b/templates/database/database-ss.yaml
+index 300edd0..f54389b 100644
+--- a/templates/database/database-ss.yaml
++++ b/templates/database/database-ss.yaml
+@@ -80,16 +80,20 @@ spec:
+           exec:
+             command:
+             - /docker-healthcheck.sh
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.database.internal.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.database.internal.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.database.internal.livenessProbe.periodSeconds }}
+           timeoutSeconds: {{ .Values.database.internal.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.database.internal.livenessProbe.successThreshold }}
+         readinessProbe:
+           exec:
+             command:
+             - /docker-healthcheck.sh
+-          initialDelaySeconds: 1
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.database.internal.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.database.internal.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.database.internal.readinessProbe.periodSeconds }}
+           timeoutSeconds: {{ .Values.database.internal.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.database.internal.readinessProbe.successThreshold }}
+ {{- if .Values.database.internal.resources }}
+         resources:
+ {{ toYaml .Values.database.internal.resources | indent 10 }}
+diff --git a/templates/exporter/exporter-dpl.yaml b/templates/exporter/exporter-dpl.yaml
+index 5ff36f4..6077c50 100644
+--- a/templates/exporter/exporter-dpl.yaml
++++ b/templates/exporter/exporter-dpl.yaml
+@@ -42,14 +42,20 @@ spec:
+           httpGet:
+             path: /
+             port: {{ .Values.metrics.exporter.port }}
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.exporter.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.exporter.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.exporter.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.exporter.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.exporter.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /
+             port: {{ .Values.metrics.exporter.port }}
+-          initialDelaySeconds: 30
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.exporter.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.exporter.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.exporter.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.exporter.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.exporter.readinessProbe.successThreshold }}
+         args: ["-log-level", "{{ .Values.logLevel }}"]
+         envFrom:
+         - configMapRef:
+diff --git a/templates/jobservice/jobservice-dpl.yaml b/templates/jobservice/jobservice-dpl.yaml
+index 32df454..832c12c 100644
+--- a/templates/jobservice/jobservice-dpl.yaml
++++ b/templates/jobservice/jobservice-dpl.yaml
+@@ -57,15 +57,21 @@ spec:
+             path: /api/v1/stats
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.jobservice.containerPort" . }}
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.jobservice.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.jobservice.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.jobservice.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.jobservice.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.jobservice.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /api/v1/stats
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.jobservice.containerPort" . }}
+-          initialDelaySeconds: 20
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.jobservice.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.jobservice.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.jobservice.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.jobservice.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.jobservice.readinessProbe.successThreshold }}
+ {{- if .Values.jobservice.resources }}
+         resources:
+ {{ toYaml .Values.jobservice.resources | indent 10 }}
+diff --git a/templates/nginx/deployment.yaml b/templates/nginx/deployment.yaml
+index bc1de0a..6737774 100644
+--- a/templates/nginx/deployment.yaml
++++ b/templates/nginx/deployment.yaml
+@@ -57,15 +57,21 @@ spec:
+             scheme: {{ .scheme }}
+             path: /
+             port: {{ .port }}
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.nginx.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.nginx.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.nginx.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.nginx.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.nginx.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             scheme: {{ .scheme }}
+             path: /
+             port: {{ .port }}
+-          initialDelaySeconds: 1
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.nginx.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.nginx.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.nginx.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.nginx.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.nginx.readinessProbe.successThreshold }}
+ {{- if .Values.nginx.resources }}
+         resources:
+ {{ toYaml .Values.nginx.resources | indent 10 }}
+diff --git a/templates/notary/notary-server.yaml b/templates/notary/notary-server.yaml
+index 64cfd29..498ae1a 100644
+--- a/templates/notary/notary-server.yaml
++++ b/templates/notary/notary-server.yaml
+@@ -44,15 +44,21 @@ spec:
+             path: /_notary_server/health
+             scheme: "HTTP"
+             port: 4443
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.notary.server.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.notary.server.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.notary.server.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.notary.server.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.notary.server.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /_notary_server/health
+             scheme: "HTTP"
+             port: 4443
+-          initialDelaySeconds: 20
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.notary.server.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.notary.server.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.notary.server.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.notary.server.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.notary.server.readinessProbe.successThreshold }}
+ {{- if .Values.notary.server.resources }}
+         resources:
+ {{ toYaml .Values.notary.server.resources | indent 10 }}
+diff --git a/templates/notary/notary-signer.yaml b/templates/notary/notary-signer.yaml
+index d94e490..ddc6b26 100644
+--- a/templates/notary/notary-signer.yaml
++++ b/templates/notary/notary-signer.yaml
+@@ -43,15 +43,21 @@ spec:
+             path: /
+             scheme: "HTTPS"
+             port: 7899
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.notary.signer.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.notary.signer.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.notary.signer.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.notary.signer.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.notary.signer.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /
+             scheme: "HTTPS"
+             port: 7899
+-          initialDelaySeconds: 20
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.notary.signer.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.notary.signer.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.notary.signer.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.notary.signer.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.notary.signer.livenessProbe.successThreshold }}
+ {{- if .Values.notary.signer.resources }}
+         resources:
+ {{ toYaml .Values.notary.signer.resources | indent 10 }}
+diff --git a/templates/portal/deployment.yaml b/templates/portal/deployment.yaml
+index d3469de..eb425bc 100644
+--- a/templates/portal/deployment.yaml
++++ b/templates/portal/deployment.yaml
+@@ -52,15 +52,21 @@ spec:
+             path: /
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.portal.containerPort" . }}
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.portal.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.portal.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.portal.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.portal.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.portal.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.portal.containerPort" . }}
+-          initialDelaySeconds: 1
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.portal.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.portal.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.portal.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.portal.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.portal.readinessProbe.successThreshold }}
+         ports:
+         - containerPort: {{ template "harbor.portal.containerPort" . }}
+         volumeMounts:
+diff --git a/templates/redis/statefulset.yaml b/templates/redis/statefulset.yaml
+index 74b7581..8859063 100644
+--- a/templates/redis/statefulset.yaml
++++ b/templates/redis/statefulset.yaml
+@@ -43,13 +43,19 @@ spec:
+         livenessProbe:
+           tcpSocket:
+             port: 6379
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.redis.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.redis.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.redis.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.redis.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.redis.livenessProbe.successThreshold }}
+         readinessProbe:
+           tcpSocket:
+             port: 6379
+-          initialDelaySeconds: 1
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.redis.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.redis.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.redis.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.redis.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.redis.readinessProbe.successThreshold }}
+ {{- if .Values.redis.internal.resources }}
+         resources:
+ {{ toYaml .Values.redis.internal.resources | indent 10 }}
+diff --git a/templates/registry/registry-dpl.yaml b/templates/registry/registry-dpl.yaml
+index 118a165..5c24b82 100644
+--- a/templates/registry/registry-dpl.yaml
++++ b/templates/registry/registry-dpl.yaml
+@@ -60,15 +60,21 @@ spec:
+             path: /
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.registry.containerPort" . }}
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.registry.registry.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.registry.registry.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.registry.registry.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.registry.registry.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.registry.registry.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.registry.containerPort" . }}
+-          initialDelaySeconds: 1
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.registry.registry.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.registry.registry.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.registry.registry.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.registry.registry.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.registry.registry.readinessProbe.successThreshold }}
+ {{- if .Values.registry.registry.resources }}
+         resources:
+ {{ toYaml .Values.registry.registry.resources | indent 10 }}
+@@ -152,15 +158,21 @@ spec:
+             path: /api/health
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.registryctl.containerPort" . }}
+-          initialDelaySeconds: 300
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.registry.controller.livenessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.registry.controller.livenessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.registry.controller.livenessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.registry.controller.livenessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.registry.controller.livenessProbe.successThreshold }}
+         readinessProbe:
+           httpGet:
+             path: /api/health
+             scheme: {{ include "harbor.component.scheme" . | upper }}
+             port: {{ template "harbor.registryctl.containerPort" . }}
+-          initialDelaySeconds: 1
+-          periodSeconds: 10
++          initialDelaySeconds: {{ .Values.registry.controller.readinessProbe.initialDelaySeconds }}
++          failureThreshold: {{ .Values.registry.controller.readinessProbe.failureThreshold }}
++          periodSeconds: {{ .Values.registry.controller.readinessProbe.periodSeconds }}
++          timeoutSeconds: {{ .Values.registry.controller.readinessProbe.timeoutSeconds }}
++          successThreshold: {{ .Values.registry.controller.readinessProbe.successThreshold }}
+ {{- if .Values.registry.controller.resources }}
+         resources:
+ {{ toYaml .Values.registry.controller.resources | indent 10 }}
+diff --git a/templates/trivy/trivy-sts.yaml b/templates/trivy/trivy-sts.yaml
+index 37b19ac..5a27b48 100644
+--- a/templates/trivy/trivy-sts.yaml
++++ b/templates/trivy/trivy-sts.yaml
+@@ -131,19 +131,21 @@ spec:
+               scheme: {{ include "harbor.component.scheme" . | upper }}
+               path: /probe/healthy
+               port: api-server
+-            initialDelaySeconds: 5
+-            periodSeconds: 10
+-            successThreshold: 1
+-            failureThreshold: 10
++            initialDelaySeconds: {{ .Values.trivy.livenessProbe.initialDelaySeconds }}
++            failureThreshold: {{ .Values.trivy.livenessProbe.failureThreshold }}
++            periodSeconds: {{ .Values.trivy.livenessProbe.periodSeconds }}
++            timeoutSeconds: {{ .Values.trivy.livenessProbe.timeoutSeconds }}
++            successThreshold: {{ .Values.trivy.livenessProbe.successThreshold }}
+           readinessProbe:
+             httpGet:
+               scheme: {{ include "harbor.component.scheme" . | upper }}
+               path: /probe/ready
+               port: api-server
+-            initialDelaySeconds: 5
+-            periodSeconds: 10
+-            successThreshold: 1
+-            failureThreshold: 3
++            initialDelaySeconds: {{ .Values.trivy.livenessProbe.initialDelaySeconds }}
++            failureThreshold: {{ .Values.trivy.livenessProbe.failureThreshold }}
++            periodSeconds: {{ .Values.trivy.livenessProbe.periodSeconds }}
++            timeoutSeconds: {{ .Values.trivy.livenessProbe.timeoutSeconds }}
++            successThreshold: {{ .Values.trivy.livenessProbe.successThreshold }}
+           resources:
+ {{ toYaml .Values.trivy.resources | indent 12 }}
+       {{- if or (or .Values.internalTLS.enabled .Values.caBundleSecretName) (or (not .Values.persistence.enabled) $trivy.existingClaim) }}
+diff --git a/values.yaml b/values.yaml
+index 8e89cee..5a484fa 100644
+--- a/values.yaml
++++ b/values.yaml
+@@ -408,6 +408,18 @@ nginx:
+   automountServiceAccountToken: false
+   replicas: 1
+   revisionHistoryLimit: 10
++  livenessProbe:
++    initialDelaySeconds: 300
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 
++    successThreshold: 1
++  readinessProbe:
++    initialDelaySeconds: 1
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
+   # resources:
+   #  requests:
+   #    memory: 256Mi
+@@ -442,6 +454,18 @@ portal:
+   automountServiceAccountToken: false
+   replicas: 1
+   revisionHistoryLimit: 10
++  livenessProbe:
++    initialDelaySeconds: 300
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
++  readinessProbe:
++    initialDelaySeconds: 1
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
+   # resources:
+   #  requests:
+   #    memory: 256Mi
+@@ -480,6 +504,20 @@ core:
+   startupProbe:
+     enabled: true
+     initialDelaySeconds: 10
++    failureThreshold: 360
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
++  livenessProbe:
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
++  readinessProbe:
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
+   # resources:
+   #  requests:
+   #    memory: 256Mi
+@@ -557,6 +595,18 @@ jobservice:
+     max_update_hours: 24
+     # the max time for execution in running state without new task created
+     max_dangling_hours: 168
++  livenessProbe:
++    initialDelaySeconds: 300
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
++  readinessProbe:
++    initialDelaySeconds: 20
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
+ 
+   # resources:
+   #   requests:
+@@ -595,6 +645,18 @@ registry:
+     image:
+       repository: goharbor/registry-photon
+       tag: v2.8.0
++    livenessProbe:
++      initialDelaySeconds: 300
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
++    readinessProbe:
++      initialDelaySeconds: 1
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
+     # resources:
+     #  requests:
+     #    memory: 256Mi
+@@ -603,7 +665,18 @@ registry:
+     image:
+       repository: goharbor/harbor-registryctl
+       tag: v2.8.0
+-
++    livenessProbe:
++      initialDelaySeconds: 300
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
++    readinessProbe:
++      initialDelaySeconds: 1
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
+     # resources:
+     #  requests:
+     #    memory: 256Mi
+@@ -722,6 +795,18 @@ trivy:
+   securityCheck: "vuln"
+   # The duration to wait for scan completion
+   timeout: 5m0s
++  livenessProbe:
++    initialDelaySeconds: 5
++    failureThreshold: 10
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
++  readinessProbe:
++    initialDelaySeconds: 5
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
+   resources:
+     requests:
+       cpu: 200m
+@@ -760,6 +845,18 @@ notary:
+       repository: goharbor/notary-server-photon
+       tag: v2.8.0
+     replicas: 1
++    livenessProbe:
++      initialDelaySeconds: 300
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
++    readinessProbe:
++      initialDelaySeconds: 20
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
+     # resources:
+     #  requests:
+     #    memory: 256Mi
+@@ -794,6 +891,18 @@ notary:
+       repository: goharbor/notary-signer-photon
+       tag: v2.8.0
+     replicas: 1
++    livenessProbe:
++      initialDelaySeconds: 300
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
++    readinessProbe:
++      initialDelaySeconds: 20
++      failureThreshold: 3
++      periodSeconds: 10
++      timeoutSeconds: 1
++      successThreshold: 1
+     # resources:
+     #  requests:
+     #    memory: 256Mi
+@@ -850,9 +959,17 @@ database:
+     # The timeout used in livenessProbe; 1 to 5 seconds
+     livenessProbe:
+       timeoutSeconds: 1
++      initialDelaySeconds: 300
++      periodSeconds: 10
++      failureThreshold: 3
++      successThreshold: 1
+     # The timeout used in readinessProbe; 1 to 5 seconds
+     readinessProbe:
+       timeoutSeconds: 1
++      initialDelaySeconds: 1
++      periodSeconds: 10
++      failureThreshold: 3
++      successThreshold: 1
+     nodeSelector: {}
+     tolerations:
+     - key: node-role.kubernetes.io/master
+@@ -921,6 +1038,18 @@ redis:
+     image:
+       repository: goharbor/redis-photon
+       tag: v2.8.0
++  livenessProbe:
++    initialDelaySeconds: 300
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
++  readinessProbe:
++    initialDelaySeconds: 1
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
+     # resources:
+     #  requests:
+     #    memory: 256Mi
+@@ -984,6 +1113,18 @@ exporter:
+   cacheCleanInterval: 14400
+   ## The priority class to run the pod as
+   priorityClassName:
++  livenessProbe:
++    initialDelaySeconds: 300
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
++  readinessProbe:
++    initialDelaySeconds: 30
++    failureThreshold: 3
++    periodSeconds: 10
++    timeoutSeconds: 1
++    successThreshold: 1
+ 
+ metrics:
+   enabled: false
+-- 
+2.25.1
+

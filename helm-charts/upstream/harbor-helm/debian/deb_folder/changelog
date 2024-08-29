@@ -1,3 +1,9 @@
+harbor-helm (1.12-4) unstable; urgency=medium
+
+  * Liveness/readiness/startup probes update to reduce platform CPU usage
+
+ --  Jagatguru Prasad Mishra <jagatguruprasad.mishra@windriver.com>   Thu, 29 Aug 2024 03:16:21 -0400
+
 harbor-helm (1.12-3) unstable; urgency=medium
 
   * Internal change to disable huge pages in harbor db
