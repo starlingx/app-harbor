@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2023 Wind River Systems, Inc.
+# Copyright (c) 2023,2026 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -8,7 +8,6 @@
 
 """ System inventory App lifecycle operator."""
 
-import os
 import yaml
 
 from k8sapp_harbor.common import constants as app_constants
@@ -111,31 +110,24 @@ class HarborAppLifecycleOperator(base.AppLifecycleOperator):
             self._delete_harbor_pods(app_op, client_core)
 
     def pre_remove(self, app):
-        LOG.debug(
-            "Executing pre_remove for {} app".format(app_constants.HELM_APP_HARBOR)
+        LOG.info(
+            "Executing pre_remove for %s app" % app_constants.HELM_APP_HARBOR
         )
-        yfile = os.path.join(app.sync_fluxcd_manifest, 'harbor/harbor.yaml')
-        if os.path.exists(yfile):
-            cmd = ['kubectl', '--kubeconfig', kubernetes.KUBERNETES_ADMIN_CONF,
-                   'delete', '-f', yfile]
-            stdout, stderr = cutils.trycmd(*cmd)
-            LOG.debug("{} app: cmd={} stdout={} stderr={}".format(app.name, cmd, stdout, stderr))
-
-        # Comment out harbor.yaml in the kustomization.yaml
-        kust_file = os.path.join(app.sync_fluxcd_manifest, 'harbor/kustomization.yaml')
-        cmd = ['sed', '-i', '/harbor.yaml/s/^/#/g', kust_file]
+        # Delete PVCs so namespace can be deleted cleanly.
+        # Helm does not delete StatefulSet PVCs on uninstall and they
+        # block namespace finalization.
+        cmd = ['kubectl', '--kubeconfig', kubernetes.KUBERNETES_ADMIN_CONF,
+               'delete', 'pvc', '--all',
+               '-n', app_constants.HELM_NS_HARBOR,
+               '--ignore-not-found=true', '--timeout=60s']
         stdout, stderr = cutils.trycmd(*cmd)
-        LOG.debug("{} app: cmd={} stdout={} stderr={}".format(app.name, cmd, stdout, stderr))
+        LOG.info("%s app: pre_remove delete PVCs stdout=%s stderr=%s"
+                 % (app.name, stdout, stderr))
 
     def post_remove(self, app):
-        LOG.debug(
-            "Executing post_remove for {} app".format(app_constants.HELM_APP_HARBOR)
+        LOG.info(
+            "Executing post_remove for %s app" % app_constants.HELM_APP_HARBOR
         )
-        # Uncomment harbor.yaml in the kustomization.yaml
-        kust_file = os.path.join(app.sync_fluxcd_manifest, 'harbor/kustomization.yaml')
-        cmd = ['sed', '-i', '/harbor.yaml/s/^#//g', kust_file]
-        stdout, stderr = cutils.trycmd(*cmd)
-        LOG.debug("{} app: post_remove cmd={} stdout={} stderr={}".format(app.name, cmd, stdout, stderr))
 
     def _get_helm_user_overrides(self, dbapi_instance, db_app_id):
         try:
